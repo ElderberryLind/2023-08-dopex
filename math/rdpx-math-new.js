@@ -1,21 +1,36 @@
 // rDPX V2 LP management simulations
 // DSC (Dopex Synthetic Coin) is pegged to ETH
-// ETH price is $1000
-// rDPX price is $100
+// ETH price is $1660 //EL adjust to reasonable #
+// rDPX price is $16.6 //EL adjust to reasonable #
 
-let lpRdpxReserve = 10000;
-let lpDscReserve = 1000;
+//EL Note: original sim ratio was 0.1. Fixed to 0.01
+//Starting dollar amount in LP (rdpx + ETH)
+let dollarAmtInLP = 2000000; //EL Addition ...User input (will be split 50/50 between each asset)
+
+//Starting Price rDPX
+let startPriceRDPXinDollars = 16.6;//EL user input
+let startPriceEthinDollars = 1660; //EL user input
+
+let startingRatio = startPriceRDPXinDollars/startPriceEthinDollars;
+
+let lpRdpxReserve = (dollarAmtInLP/2)/startPriceRDPXinDollars; //EL Addition
+let lpDscReserve = (dollarAmtInLP/2)/startPriceEthinDollars; //EL Addition
+
+let StartLP_rDPXinRDPX = lpRdpxReserve;
+let StartLP_DSCinDSC = lpDscReserve;
+
 
 let rdpxPrice = () => lpDscReserve / lpRdpxReserve; // rDPX price in ETH
+let StartrdpxPriceInDollars = rdpxPrice() * startPriceEthinDollars;
 
 let rdpxSupply = 2250000;
 
-let rdpxV2CoreRdpxReserve = 1000;
+let rdpxV2CoreRdpxReserve = 870000; //EL adjust to reasonable # ...User input: this is the "treasury rdpx"
 let rdpxV2CoreEthReserve = 0;
 
 let dscSupply = 0;
 
-let reLpFactor = 0.001;
+let reLpFactor = 0.09;
 
 let optionsHeld = 0;
 
@@ -93,7 +108,7 @@ function bond(amount) {
   const baseReLpRatio = Math.sqrt(rdpxV2CoreRdpxReserve) * reLpFactor;
 
   lpRdpxReserve += rdpxReq;
-  lpDscReserve += 0.25;
+  lpDscReserve += 0.25 * amount; //EL..fixed this
 
   const discountPercentage =
     Math.sqrt(rdpxV2CoreRdpxReserve) * reLpFactor * 100;
@@ -128,7 +143,7 @@ function epoch() {
   rdpxV2CoreEthReserve += fundingCollected;
 }
 
-for (let i = 1; i < 25; i++) {
+for (let i = 1; i <= 25; i++) {
   bond(100);
   epoch();
 }
@@ -137,9 +152,32 @@ const rdpxV2CoreValueInEth =
   (rdpxV2CoreRdpxReserve + lpRdpxReserve) * rdpxPrice() + rdpxV2CoreEthReserve;
 const backingPercent = (rdpxV2CoreValueInEth / dscSupply) * 100;
 
+//EL added
+const assumedEthStartingPrice = 1660;
+const assumedEthFinalPrice = 1660;
+let final_rdpxPriceInDollars = rdpxPrice() * assumedEthFinalPrice;
+let finalRatio = lpDscReserve / lpRdpxReserve; // rDPX price in ETH
+let EndrdpxPriceInDollars = rdpxPrice() * assumedEthFinalPrice;
+
+//
+
+
 console.log({
   rdpxPrice: rdpxPrice().toLocaleString(),
   rdpxV2CoreValueInEth,
   backingPercent,
   rdpxV2CoreRdpxReserve,
+
+  assumedEthStartingPrice,
+  assumedEthFinalPrice,
+
+  StartLP_rDPXinRDPX, 
+  StartLP_DSCinDSC,
+  startingRatio,
+  lpDscReserve,
+  lpRdpxReserve,
+  finalRatio,
+  StartrdpxPriceInDollars,
+  EndrdpxPriceInDollars,
+  dscSupply,
 });
